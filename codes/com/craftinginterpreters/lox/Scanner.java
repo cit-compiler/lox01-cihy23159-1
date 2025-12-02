@@ -21,22 +21,22 @@ class Scanner {
   }
 
     List<Token> scanTokens() {
-    while (!isAtEnd()) {
+      while (!isAtEnd()) {
       // We are at the beginning of the next lexeme.
       start = current;
       scanToken();
-
-       private boolean isAtEnd() {
-       return current >= source.length();
-
     }
+
+    private boolean isAtEnd() {
+      return current >= source.length();
+    }
+
     tokens.add(new Token(EOF, "", null, line));
     return tokens;
   }
 
   private void isAtEnd(){
     return current >= source.longth();
-    
   }
 
   private void scanToken() {
@@ -53,11 +53,71 @@ class Scanner {
       case ';': addToken(SEMICOLON); break;
       case '*': addToken(STAR); break; 
 
+      case '!'
+        addToken(match('=') ? BANG_EQUARL : BANG);
+        break;
+      case '='
+        addToken(match('=') ? EQUAL_EQUARL : EQUAL);
+        break;
+      case '<'
+        addToken(match('=') ? LESS_EQUARL : LESS);
+        break;
+      case '>'
+        addToken(match('=') ? GREATER_EQUARL : GREATER);
+        break;
+      case '/'
+        if(match('/'))
+        {
+          while (peek() != '\n' && !isAtEnd())advance();
+        }
+        else{
+          addToken(SLASH);
+        }
+        break;
+      case ' ':
+      case '\r':
+      case '\t':
+        break;
+      case '\n':
+        line++;
+        break;
+      case '"': string(); break;
+      
       default:
         Lox.error(line, "Unexpected character.");
         break;
     }
 
+    private void sting()
+    {
+      while (peek() != '"' && !isAtEnd())
+      {
+        if(peek() == '\n' )line++;
+        break;
+      }
+      if(isAtEnd())
+      {
+        Lox.error(line,"Unterminated string");
+        return;
+      }
+      advance();
+      String value = source.substring(start + 1, current -1;)
+      addToken(STRING,value);
+    }
+
+    private boolen match (char expected)
+    {
+      if(isAtEnd())return false;
+      if(source.charAt(current) != expected) return false;
+
+      current++;
+      return true;
+    }
+    private char peek()
+    {
+      if(isAtEnd())return '\0';
+      return source.charAt(current);
+    }
     private char advance() {
     return source.charAt(current++);
     }
