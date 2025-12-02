@@ -5,133 +5,121 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.craftinginterpreters.lox.TokenType.*; 
+import static com.craftinginterpreters.lox.TokenType.*;
 
 class Scanner {
-  private final String source;
-  private final List<Token> tokens = new ArrayList<>();
+    private final String source;
+    private final List<Token> tokens = new ArrayList<>();
 
-  private int start = 0;
-  private int current = 0;
-  private int line = 1;
+    private int start = 0;
+    private int current = 0;
+    private int line = 1;
 
-
-  Scanner(String source) {
-    this.source = source;
-  }
+    Scanner(String source) {
+        this.source = source;
+    }
 
     List<Token> scanTokens() {
-      while (!isAtEnd()) {
-      // We are at the beginning of the next lexeme.
-      start = current;
-      scanToken();
+        while (!isAtEnd()) {
+            start = current;
+            scanToken();
+        }
+
+        tokens.add(new Token(EOF, "", null, line));
+        return tokens;
     }
+
+    // ----- 基本処理 -----
 
     private boolean isAtEnd() {
-      return current >= source.length();
+        return current >= source.length();
     }
 
-    tokens.add(new Token(EOF, "", null, line));
-    return tokens;
-  }
+    private void scanToken() {
+        char c = advance();
+        switch (c) {
+            case '(' -> addToken(LEFT_PAREN);
+            case ')' -> addToken(RIGHT_PAREN);
+            case '{' -> addToken(LEFT_BRACE);
+            case '}' -> addToken(RIGHT_BRACE);
+            case ',' -> addToken(COMMA);
+            case '.' -> addToken(DOT);
+            case '-' -> addToken(MINUS);
+            case '+' -> addToken(PLUS);
+            case ';' -> addToken(SEMICOLON);
+            case '*' -> addToken(STAR);
 
-  private void isAtEnd(){
-    return current >= source.longth();
-  }
+            case '!' ->
+                addToken(match('=') ? BANG_EQUAL : BANG);
+            case '=' ->
+                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+            case '<' ->
+                addToken(match('=') ? LESS_EQUAL : LESS);
+            case '>' ->
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
 
-  private void scanToken() {
-    char c = advance();
-    switch (c) {
-      case '(': addToken(LEFT_PAREN); break;
-      case ')': addToken(RIGHT_PAREN); break;
-      case '{': addToken(LEFT_BRACE); break;
-      case '}': addToken(RIGHT_BRACE); break;
-      case ',': addToken(COMMA); break;
-      case '.': addToken(DOT); break;
-      case '-': addToken(MINUS); break;
-      case '+': addToken(PLUS); break;
-      case ';': addToken(SEMICOLON); break;
-      case '*': addToken(STAR); break; 
+            case '/' -> {
+                if (match('/')) {
+                    while (peek() != '\n' && !isAtEnd()) advance();
+                } else {
+                    addToken(SLASH);
+                }
+            }
 
-      case '!'
-        addToken(match('=') ? BANG_EQUARL : BANG);
-        break;
-      case '='
-        addToken(match('=') ? EQUAL_EQUARL : EQUAL);
-        break;
-      case '<'
-        addToken(match('=') ? LESS_EQUARL : LESS);
-        break;
-      case '>'
-        addToken(match('=') ? GREATER_EQUARL : GREATER);
-        break;
-      case '/'
-        if(match('/'))
-        {
-          while (peek() != '\n' && !isAtEnd())advance();
+            // 空白
+            case ' ', '\r', '\t' -> {}
+            case '\n' -> line++;
+
+            case '"' -> string();
+
+            default -> Lox.error(line, "Unexpected character.");
         }
-        else{
-          addToken(SLASH);
+    }
+
+    // ----- 文字列リテラル -----
+
+    private void string() {
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
         }
-        break;
-      case ' ':
-      case '\r':
-      case '\t':
-        break;
-      case '\n':
-        line++;
-        break;
-      case '"': string(); break;
-      
-      default:
-        Lox.error(line, "Unexpected character.");
-        break;
+
+        if (isAtEnd()) {
+            Lox.error(line, "Unterminated string.");
+            return;
+        }
+
+        advance(); // closing "
+
+        String value = source.substring(start + 1, current - 1);
+        addToken(STRING, value);
     }
 
-    private void sting()
-    {
-      while (peek() != '"' && !isAtEnd())
-      {
-        if(peek() == '\n' )line++;
-        break;
-      }
-      if(isAtEnd())
-      {
-        Lox.error(line,"Unterminated string");
-        return;
-      }
-      advance();
-      String value = source.substring(start + 1, current -1;)
-      addToken(STRING,value);
+    // ----- ユーティリティ -----
+
+    private boolean match(char expected) {
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected) return false;
+
+        current++;
+        return true;
     }
 
-    private boolen match (char expected)
-    {
-      if(isAtEnd())return false;
-      if(source.charAt(current) != expected) return false;
+    private char peek() {
+        if (isAtEnd()) return '\0';
+        return source.charAt(current);
+    }
 
-      current++;
-      return true;
-    }
-    private char peek()
-    {
-      if(isAtEnd())return '\0';
-      return source.charAt(current);
-    }
     private char advance() {
-    return source.charAt(current++);
+        return source.charAt(current++);
     }
 
     private void addToken(TokenType type) {
-    addToken(type, null);
+        addToken(type, null);
     }
 
     private void addToken(TokenType type, Object literal) {
-    String text = source.substring(start, current);
-    tokens.add(new Token(type, text, literal, line));
+        String text = source.substring(start, current);
+        tokens.add(new Token(type, text, literal, line));
     }
-
-  }
-
-  
 }
