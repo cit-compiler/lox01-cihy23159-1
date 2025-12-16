@@ -5,13 +5,24 @@ import java.util.List;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
-  private final List<Token> tokens;
-  private int current = 0;
+    private static class ParseError extends RuntimeException {}
+    private final List<Token> tokens;
+    private int current = 0;
 
-  Parser(List<Token> tokens) {
+    Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
 }
+
+Expr parse() {
+    //add after Parser
+    try {
+        return expression();
+    } catch (ParseError error) {
+        return null;
+    }
+}
+
 
 private Expr expression() {
     return equality();
@@ -39,6 +50,13 @@ private boolean match(TokenType... types) {
     return false;
 }
 
+private Token consume(TokenType type, String message) {
+    //add after match
+    if (check(type)) return advance();
+
+    throw error(peek(), message);
+}
+
 private boolean check(TokenType type) {
 if (isAtEnd()) return false;
 return peek().type == type;
@@ -60,6 +78,11 @@ private Token peek() {
 
 private Token previous() {
  return tokens.get(current - 1);
+}
+private ParseError error(Token token, String message) {
+    //add after previous
+    Lox.error(token, message);
+    return new ParseError();
 }
 
 private Expr comparison() {
@@ -121,6 +144,30 @@ private Expr primary() {
         Expr expr = expression();
         consume(RIGHT_PAREN, "Expect ')' after expression.");
         return new Expr.Grouping(expr);
+    }
+    throw error(peek(), "Expect expression.");
+}
+
+private void synchronize() {
+    //add after error ←error()はLox.javaにある?
+    advance();
+
+    while (!isAtEnd()) {
+        if (previous().type == SEMICOLON) return;
+
+        switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+            return;
+        }
+
+        advance();
     }
 }
 
