@@ -12,19 +12,17 @@ class Parser {
     Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
-}
 
-Expr parse() {
+  Expr parse() {
     //add after Parser
     try {
         return expression();
     } catch (ParseError error) {
         return null;
     }
-}
+  }
 
-
-private Expr expression() {
+  private Expr expression() {
     return equality();
 }
 
@@ -170,4 +168,10 @@ private void synchronize() {
         advance();
     }
 }
+}
+
+
+
+
+
 
