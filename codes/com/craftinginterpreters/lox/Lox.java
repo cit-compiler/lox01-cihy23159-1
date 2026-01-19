@@ -51,12 +51,14 @@ public class Lox {
 
     //replace 5line (6.4)
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
+
+    //Expr expression = parser.parse();
     // Stop if there was a syntax error.
     if (hadError) return;
 
     //after replace (7.4.2)
-    interpreter.interpret(expression);
+    interpreter.interpret(statements);
   }
 
     static void error(int line, String message) {
